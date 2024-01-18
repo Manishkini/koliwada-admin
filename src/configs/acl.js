@@ -15,9 +15,9 @@ const defineRulesFor = (role, subject) => {
   } else {
     can(['read'], 'home')
     can(['read'], 'acl-page')
-    if (adminObj.role.permissions.length) {
-      for (let i = 0; i < adminObj.role.permissions.length; i++) {
-        can(adminObj.role.permissions[i].actions, adminObj.role.permissions[i].subject)
+    if (adminObj?.responsibility?.permissions?.length) {
+      for (let i = 0; i < adminObj.responsibility.permissions.length; i++) {
+        can(adminObj.responsibility.permissions[i].actions, adminObj.responsibility.permissions[i].subject)
       }
     }
   }

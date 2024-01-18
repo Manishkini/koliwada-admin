@@ -214,7 +214,8 @@ const Invitation = () => {
   }
 
   const fetchInvitations = async () => {
-    const invitations = await API.get('/auth/admin/invitation')
+    const invitations = await API.post('/auth/admin/invitation/filter')
+    console.log('invitations', invitations)
     setInvitations(invitations.data)
   }
 

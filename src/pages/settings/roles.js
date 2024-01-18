@@ -21,25 +21,12 @@ const Roles = () => {
   const auth = useAuth()
   const [show, setShow] = useState(false)
   const [rows, setRows] = useState([])
-  const [permissions, setPermissions] = useState([])
   const [selectedRow, setSelectedRow] = useState(null)
 
   const fetchRoles = async () => {
     try {
       const roles = await API.get('/role')
       setRows(roles.data)
-    } catch (err) {
-      console.log(err)
-      if (err.response.data.statusCode === 401) {
-        auth.logout()
-      }
-    }
-  }
-
-  const fetchPermissions = async () => {
-    try {
-      const permissions = await API.get('/permission')
-      setPermissions(permissions.data)
     } catch (err) {
       console.log(err)
       if (err.response.data.statusCode === 401) {
@@ -71,29 +58,19 @@ const Roles = () => {
     setSelectedRow(null)
   }
 
-  const upsertRow = (type, obj) => {
-    let tempRow = [...rows]
-    if (type === 'create') {
-      tempRow.push(obj)
-      setRows(tempRow)
-    } else if (type === 'update') {
-      const rowIndex = tempRow.findIndex(permission => permission.id === obj.id)
-      tempRow[rowIndex].name = obj.name
-      setRows(tempRow)
-    }
-  }
-
   useEffect(() => {
     fetchRoles()
-    fetchPermissions()
   }, [])
 
   const columns = [
     {
-      flex: 0.8,
+      flex: 0.2,
+      minWidth: 200,
       field: 'name',
-      headerName: 'Name',
+      headerName: 'Role Name',
       sortable: true,
+      headerAlign: 'center',
+      align: 'center',
       renderCell: params => (
         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
           {params.value}
@@ -102,8 +79,52 @@ const Roles = () => {
     },
     {
       flex: 0.2,
+      minWidth: 200,
+      field: 'nameNative',
+      headerName: 'Marathi Role Name',
+      sortable: true,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 200,
+      field: 'slug',
+      headerName: 'Slug',
+      sortable: true,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 200,
+      field: 'rank',
+      headerName: 'Rank',
+      sortable: true,
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 100,
       field: 'actions',
       headerName: 'Actions',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       renderCell: ({ row }) => (
@@ -144,7 +165,7 @@ const Roles = () => {
           />
           <CardContent>
             <TableSort type='Role' columns={columns} rows={rows} />
-            <RoleDialog open={show} onClose={onClose} permissions={permissions} upsertRow={upsertRow} />
+            <RoleDialog open={show} onClose={onClose} refetch={fetchRoles} selectedRow={selectedRow} />
           </CardContent>
         </Card>
       </Grid>

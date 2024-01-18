@@ -89,8 +89,8 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  email: 'test@koliwada.com',
-  password: 'Test@123'
+  email: 'superadmin@vuexy.com',
+  password: 'superAdmin'
 }
 
 const LoginPage = () => {
@@ -202,10 +202,13 @@ const LoginPage = () => {
             </Box>
             <Alert icon={false} sx={{ py: 3, mb: 6, ...bgColors.primaryLight, '& .MuiAlert-message': { p: 0 } }}>
               <Typography variant='body2' sx={{ mb: 2, color: 'primary.main' }}>
+                Super Admin: <strong>superadmin@vuexy.com</strong> / Pass: <strong>superAdmin</strong>
+              </Typography>
+              <Typography variant='body2' sx={{ mb: 2, color: 'primary.main' }}>
                 Admin: <strong>admin@vuexy.com</strong> / Pass: <strong>admin</strong>
               </Typography>
               <Typography variant='body2' sx={{ color: 'primary.main' }}>
-                Client: <strong>client@vuexy.com</strong> / Pass: <strong>client</strong>
+                Chairman: <strong>chairman@vuexy.com</strong> / Pass: <strong>chairman</strong>
               </Typography>
             </Alert>
             <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>

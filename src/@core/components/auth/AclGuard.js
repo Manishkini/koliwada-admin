@@ -32,15 +32,15 @@ const AclGuard = props => {
   // ** Vars
   let ability
   useEffect(() => {
-    if (auth.admin && auth.admin.role.slug && !guestGuard && router.route === '/') {
-      const homeRoute = getHomeRoute(auth.admin.role.slug)
+    if (auth.admin && auth.admin.responsibility?.role?.slug && !guestGuard && router.route === '/') {
+      const homeRoute = getHomeRoute(auth.admin.responsibility?.role?.slug)
       router.replace(homeRoute)
     }
   }, [auth.admin, guestGuard, router])
 
   // User is logged in, build ability for the admin based on his role
   if (auth.admin && !ability) {
-    ability = buildAbilityFor(auth.admin.role.slug, aclAbilities.subject)
+    ability = buildAbilityFor(auth.admin.responsibility?.role?.slug, aclAbilities.subject)
     if (router.route === '/') {
       return <Spinner />
     }

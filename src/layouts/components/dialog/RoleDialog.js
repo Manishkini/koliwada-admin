@@ -1,22 +1,17 @@
 // ** React Imports
-import { useState, forwardRef, useEffect } from 'react'
+import { forwardRef, useEffect } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import Card from '@mui/material/Card'
-import Switch from '@mui/material/Switch'
 import Dialog from '@mui/material/Dialog'
 import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
-import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
-import CardContent from '@mui/material/CardContent'
 import Fade from '@mui/material/Fade'
 import DialogContent from '@mui/material/DialogContent'
 import DialogActions from '@mui/material/DialogActions'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import IconButton from '@mui/material/IconButton'
 
 // ** Custom Component Import
@@ -24,8 +19,13 @@ import CustomTextField from 'src/@core/components/mui/text-field'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import PermissionsTable from '../table/permissionsTable'
 import API from 'src/configs/axios'
+
+// ** Third Party Imports
+import * as yup from 'yup'
+import toast from 'react-hot-toast'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -46,69 +46,77 @@ const CustomCloseButton = styled(IconButton)(({ theme }) => ({
   }
 }))
 
-const capitalize = string => string && string[0].toUpperCase() + string.slice(1)
+const defaultValues = {
+  name: '',
+  nameNative: '',
+  slug: ''
+}
 
-const getSlug = string =>
-  string &&
-  string
-    .split(' ')
-    .map(word => word.toLowerCase())
-    .join('_')
-
-const ROLE_LIST = [
-  {
-    name: 'Super Admin',
-    nameNative: 'उच-प्रशासक',
-    slug: 'super_admin'
-  },
-  {
-    name: 'Admin',
-    nameNative: 'प्रशासक',
-    slug: 'admin'
-  },
-  {
-    name: 'Chairman',
-    nameNative: 'अध्यक्ष',
-    slug: 'chairman'
-  },
-  {
-    name: 'Vice President',
-    nameNative: 'उपाध्यक्ष',
-    slug: 'vice_president'
-  },
-  {
-    name: 'Secretary',
-    nameNative: 'सेक्रेटरी',
-    slug: 'secretary'
-  },
-  {
-    name: 'Deputy Secretary',
-    nameNative: 'उप-सेक्रेटरी',
-    slug: 'deputy_secretary'
-  },
-  {
-    name: 'deputy_treasurer',
-    nameNative: 'खजिनदार',
-    slug: 'treasurer'
-  },
-  {
-    name: 'Deputy Treasurer',
-    nameNative: 'उप-खजिनदार',
-    slug: 'deputy_treasurer'
-  }
-]
+const schema = yup.object().shape({
+  name: yup
+    .string()
+    .required()
+    .matches(/^[A-Za-z\s]+$/, 'Please enter role name in english'),
+  nameNative: yup
+    .string()
+    .required()
+    .matches(/^[ऀ-ॿ\s]+$/, 'Please enter role name in marathi'),
+  slug: yup.string().required()
+})
 
 const RoleDialog = props => {
-  const { open, onClose, selectedRow, upsertRow, permissions } = props
-  const [permissionRecords, setPermissionRecords] = useState([])
-  const [value, setValue] = useState('')
+  const { open, onClose, selectedRow, refetch } = props
 
-  const onSubmit = async event => {
-    event.preventDefault()
+  // ** Form
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    mode: 'onChange',
+    resolver: yupResolver(schema)
+  })
+
+  const generateSlug = value => {
+    if (value) {
+      const createSlug = () => {
+        return value
+          .split(' ')
+          .map(word => word && word.toLowerCase())
+          .join('_')
+      }
+
+      const capitalizeRoleName = () => {
+        return value
+          .split(' ')
+          .map(word => word && word[0].toUpperCase() + word.slice(1))
+          .join(' ')
+      }
+      setValue('slug', createSlug(), { shouldValidate: true })
+      setValue('name', capitalizeRoleName(), { shouldValidate: true })
+    }
+  }
+
+  const createRole = async obj => {
     try {
-      const { name, nameNative, slug } = ROLE_LIST.find(data => data.slug === value)
-      const response = await API.post('/role', { name, nameNative, slug, permissions: permissionRecords })
-      upsertRow('create', response.data)
+      const invitation = await API.post(`/role`, obj)
+      if (invitation.status === 201) {
+        toast.success('Role created successfully!')
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const onSubmit = async obj => {
+    try {
+      createRole(obj)
+      refetch()
+
+      // upsertRow('create', response.data)
+      emptyState()
       onClose()
     } catch (err) {
       console.log(err)
@@ -119,9 +127,23 @@ const RoleDialog = props => {
     }
   }
 
-  const upsertPermission = records => {
-    setPermissionRecords(records)
+  const emptyState = () => {
+    setValue('name', '')
+    setValue('nameNative', '')
+    setValue('slug', '')
   }
+
+  useEffect(() => {
+    if (selectedRow?.id) {
+      setValue('name', selectedRow?.name)
+      setValue('nameNative', selectedRow?.nameNative)
+      setValue('slug', selectedRow?.slug)
+    }
+
+    return () => {
+      emptyState()
+    }
+  }, [selectedRow])
 
   return (
     <Card>
@@ -135,66 +157,106 @@ const RoleDialog = props => {
         onBackdropClick={onClose}
         sx={{ '& .MuiDialog-paper': { overflow: 'visible' } }}
       >
-        <DialogContent
-          sx={{
-            pb: theme => `${theme.spacing(8)} !important`,
-            px: theme => [`${theme.spacing(5)} !important`, `${theme.spacing(15)} !important`],
-            pt: theme => [`${theme.spacing(8)} !important`, `${theme.spacing(12.5)} !important`]
-          }}
-        >
-          <CustomCloseButton onClick={onClose}>
-            <Icon icon='tabler:x' fontSize='1.25rem' />
-          </CustomCloseButton>
-          <Box sx={{ mb: 8, textAlign: 'center' }}>
-            <Typography variant='h3' sx={{ mb: 3 }}>
-              Add New Role
-            </Typography>
-            <Typography sx={{ color: 'text.secondary' }}>
-              Updating user details will receive a privacy audit.
-            </Typography>
-          </Box>
-          <Grid container spacing={12}>
-            <Grid item xs={12}>
-              <CustomTextField
-                select
-                fullWidth
-                defaultValue=''
-                label='ROLE'
-                id='select-controlled'
-                SelectProps={{ value, onChange: e => setValue(e.target.value) }}
-              >
-                <MenuItem value=''>
-                  <em>कृपया प्रशासक निवडा</em>
-                </MenuItem>
-                <MenuItem value={'super_admin'}>{`उच-प्रशासक (Super Admin)`}</MenuItem>
-                <MenuItem value={'admin'}>{`प्रशासक (Admin)`}</MenuItem>
-                <MenuItem value={'chairman'}>{`अध्यक्ष (Chairman)`}</MenuItem>
-                <MenuItem value={'vice_president'}>{`उपाध्यक्ष (Vice President)`}</MenuItem>
-                <MenuItem value={'secretary'}>{`सेक्रेटरी (Secretary)`} </MenuItem>
-                <MenuItem value={'deputy_secretary'}>{`उप-सेक्रेटरी (Deputy Secretary)`} </MenuItem>
-                <MenuItem value={'treasurer'}>{`खजिनदार (Treasurer)`}</MenuItem>
-                <MenuItem value={'deputy_treasurer'}>{`उप-खजिनदार (Deputy Treasurer)`}</MenuItem>
-              </CustomTextField>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <DialogContent
+            sx={{
+              pb: theme => `${theme.spacing(8)} !important`,
+              px: theme => [`${theme.spacing(5)} !important`, `${theme.spacing(15)} !important`],
+              pt: theme => [`${theme.spacing(8)} !important`, `${theme.spacing(12.5)} !important`]
+            }}
+          >
+            <CustomCloseButton onClick={onClose}>
+              <Icon icon='tabler:x' fontSize='1.25rem' />
+            </CustomCloseButton>
+            <Box sx={{ mb: 8, textAlign: 'center' }}>
+              <Typography variant='h3' sx={{ mb: 3 }}>
+                Add New Role
+              </Typography>
+              <Typography sx={{ color: 'text.secondary' }}>
+                Updating user details will receive a privacy audit.
+              </Typography>
+            </Box>
+            <Grid container spacing={12}>
+              <Grid item xs={12}>
+                <Controller
+                  name='name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <CustomTextField
+                      fullWidth
+                      value={value}
+                      label='Role Name English'
+                      onChange={onChange}
+                      onBlur={e => generateSlug(e.target.value)}
+                      placeholder='Super Admin'
+                      error={Boolean(errors.name)}
+                      aria-describedby='validation-schema-role-name'
+                      {...(errors.name && { helperText: errors.name.message })}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Grid item xs={12}>
+                  <Controller
+                    name='nameNative'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomTextField
+                        fullWidth
+                        value={value}
+                        label='Role Name Marathi'
+                        onChange={onChange}
+                        placeholder='उच्च प्रशासक'
+                        error={Boolean(errors.nameNative)}
+                        aria-describedby='validation-schema-role-name-native'
+                        {...(errors.nameNative && { helperText: errors.nameNative.message })}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
+              <Grid item xs={12}>
+                <Grid item xs={12}>
+                  <Controller
+                    name='slug'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomTextField
+                        fullWidth
+                        value={value}
+                        label='Role Slug'
+                        disabled
+                        onChange={onChange}
+                        placeholder='super_admin'
+                        error={Boolean(errors.slug)}
+                        aria-describedby='validation-schema-role-slug'
+                        {...(errors.slug && { helperText: errors.slug.message })}
+                      />
+                    )}
+                  />
+                </Grid>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <PermissionsTable rows={permissions} upsertPermission={upsertPermission} />
-            </Grid>
-          </Grid>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            justifyContent: 'center',
-            px: theme => [`${theme.spacing(5)} !important`, `${theme.spacing(15)} !important`],
-            pb: theme => [`${theme.spacing(8)} !important`, `${theme.spacing(12.5)} !important`]
-          }}
-        >
-          <Button variant='contained' sx={{ mr: 1 }} onClick={onSubmit}>
-            Submit
-          </Button>
-          <Button variant='tonal' color='secondary' onClick={onClose}>
-            Discard
-          </Button>
-        </DialogActions>
+          </DialogContent>
+          <DialogActions
+            sx={{
+              justifyContent: 'center',
+              px: theme => [`${theme.spacing(5)} !important`, `${theme.spacing(15)} !important`],
+              pb: theme => [`${theme.spacing(8)} !important`, `${theme.spacing(12.5)} !important`]
+            }}
+          >
+            <Button type='submit' variant='contained' sx={{ mr: 1 }}>
+              Submit
+            </Button>
+            <Button variant='tonal' color='secondary' onClick={onClose}>
+              Discard
+            </Button>
+          </DialogActions>
+        </form>
       </Dialog>
     </Card>
   )

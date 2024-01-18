@@ -9,7 +9,7 @@ const TableSort = props => {
   const { rows, columns } = props
 
   // ** States
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 7 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
 
   return (
     <Card>
