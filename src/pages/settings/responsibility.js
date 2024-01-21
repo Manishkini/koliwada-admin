@@ -84,7 +84,6 @@ const Roles = () => {
   }
 
   const onClose = () => {
-    console.log('called closed function')
     setShow(!show)
     setSelectedRow(null)
     setSavedPermissions([])
@@ -96,8 +95,6 @@ const Roles = () => {
     fetchPermissions()
     fetchResponsibility()
   }, [])
-
-  console.log('tempPermissions', savedPermissions?.length ? savedPermissions : permissions)
 
   const columns = [
     {
@@ -134,7 +131,25 @@ const Roles = () => {
             color='secondary'
             onClick={() => {
               setOpenPermissionPreview(true)
-              setSelectedResponsibility(row)
+              const tempPermissions = JSON.parse(JSON.stringify(permissions))
+              const tempResponsibilityObject = JSON.parse(JSON.stringify(row))
+              tempPermissions.forEach(permission => {
+                const tempSavedPermission = row.permissions.find(
+                  savedPermission => permission.name === savedPermission.subject
+                )
+                if (tempSavedPermission?.subject) {
+                  permission.subject = tempSavedPermission.subject
+                  permission.actions = tempSavedPermission.actions
+                } else {
+                  permission.subject = permission.name
+                  permission.actions = []
+                }
+
+                return permission
+              })
+
+              tempResponsibilityObject.permissions = tempPermissions
+              setSelectedResponsibility(tempResponsibilityObject)
             }}
           >
             View Permissions
@@ -168,8 +183,6 @@ const Roles = () => {
       headerAlign: 'center',
       align: 'center',
       renderCell: ({ row }) => {
-        // console.log(row)
-
         return (
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
@@ -191,7 +204,6 @@ const Roles = () => {
                   return permission
                 })
 
-                console.log(tempPermissions)
                 setSavedPermissions(tempPermissions)
               }}
             >
