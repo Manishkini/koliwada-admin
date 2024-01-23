@@ -15,7 +15,6 @@ import { rowsStateInitializer } from '@mui/x-data-grid/internals'
 const PermissionsTable = props => {
   const { rows, upsertPermission } = props
 
-  // console.log(rows)
   const [permissions, setPermissions] = useState([])
 
   const togglePermissionActions = (action, subject) => {

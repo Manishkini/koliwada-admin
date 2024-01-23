@@ -208,7 +208,6 @@ const Invitation = () => {
   const fetchInvitations = async (filters = {}) => {
     try {
       const invitations = await API.post('/auth/admin/invitation/filter', filters)
-      console.log('invitations', invitations)
       setInvitations(invitations.data)
     } catch (err) {
       console.log(err)
@@ -279,8 +278,6 @@ const Invitation = () => {
       setHideNameColumn({ invitationStatus: false, actions: false })
     }
   }, [ability])
-
-  console.log(hideNameColumn)
 
   return (
     <Grid container spacing={6}>
