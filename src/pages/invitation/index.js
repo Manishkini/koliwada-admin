@@ -5,14 +5,15 @@ import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
 import Button from '@mui/material/Button'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
-import TableSort from 'src/layouts/components/grid/TableGrid'
-import InvitationDialogAdmin from 'src/layouts/components/dialog/InvitationDialogAdmin'
-import InvitationTableAdmin from 'src/layouts/components/grid/InvitationTableAdmin'
-import InvitationDialogOthers from 'src/layouts/components/dialog/InvitationDialogOthers'
+import Divider from '@mui/material/Divider'
+
+// ** Custom Component Import
+import CustomTextField from 'src/@core/components/mui/text-field'
 
 // ** Context Imports
 import { AbilityContext } from 'src/layouts/components/acl/Can'
@@ -23,52 +24,8 @@ import CustomChip from 'src/@core/components/mui/chip'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
 import API from 'src/configs/axios'
-
-const columns = [
-  {
-    id: 1,
-    align: 'left',
-    name: 'village'
-  }
-]
-
-const innerColumns = [
-  {
-    id: 1,
-    align: 'center',
-    name: 'name'
-  },
-  {
-    id: 2,
-    align: 'center',
-    name: 'role'
-  },
-  {
-    id: 3,
-    align: 'center',
-    name: 'village'
-  },
-  {
-    id: 4,
-    align: 'center',
-    name: 'E-mail'
-  },
-  {
-    id: 5,
-    align: 'center',
-    name: 'Mobile Number'
-  },
-  {
-    id: 5,
-    align: 'center',
-    name: 'Invitation Status'
-  },
-  {
-    id: 6,
-    align: 'center',
-    name: 'Actions'
-  }
-]
+import TableSort from 'src/layouts/components/grid/TableGrid'
+import InvitationDialog from 'src/layouts/components/dialog/InvitationDialog'
 
 const userStatusObj = {
   VERIFIED: 'success',
@@ -76,12 +33,45 @@ const userStatusObj = {
   inactive: 'secondary'
 }
 
+const defaultFilterObj = {
+  searchString: '',
+  responsibility: '',
+  state: '',
+  district: '',
+  tehsil: '',
+  village: '',
+  invitationStatus: '',
+  limit: 10,
+  skip: 0
+}
+
 const Invitation = () => {
   const ability = useContext(AbilityContext)
 
   const [show, setShow] = useState(false)
-  const [roles, setRoles] = useState([])
+  const [showFilters, setShowFilters] = useState(false)
+  const [responsibilities, setResponsibilities] = useState([])
   const [invitations, setInvitations] = useState([])
+  const [hideNameColumn, setHideNameColumn] = useState({})
+
+  // Filter Object
+  const [filters, setFilters] = useState({
+    searchString: '',
+    responsibility: '',
+    state: '',
+    district: '',
+    tehsil: '',
+    village: '',
+    invitationStatus: '',
+    limit: 10,
+    skip: 0
+  })
+
+  // Locations
+  const [states, setStates] = useState([])
+  const [districts, setDistricts] = useState([])
+  const [tehsils, setTehsils] = useState([])
+  const [villages, setVillages] = useState([])
 
   const columnsOthers = [
     {
@@ -91,7 +81,7 @@ const Invitation = () => {
       sortable: true,
       renderCell: ({ row }) => (
         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600, textTransform: 'capitalize' }}>
-          {`${row.firstName} ${row.middleName} ${row.lastName}`}
+          {row.firstName ? `${row.firstName} ${row.lastName}` : '--'}
         </Typography>
       )
     },
@@ -107,7 +97,7 @@ const Invitation = () => {
           <CustomAvatar skin='light' sx={{ mr: 2, width: 20, height: 20 }} color={'success'}>
             <Icon icon={'tabler:user'} />
           </CustomAvatar>
-          {row.role.name}
+          {row.responsibility.role.name}
         </Box>
       )
     },
@@ -179,6 +169,7 @@ const Invitation = () => {
     },
     {
       flex: 0.1,
+      field: 'actions',
       headerName: 'Actions',
       headerAlign: 'center',
       align: 'center',
@@ -205,78 +196,359 @@ const Invitation = () => {
     }
   ]
 
-  // Locations
-  const [states, setStates] = useState([])
-
-  const fetchRoles = async () => {
-    const roles = await API.get('/role')
-    setRoles(roles.data)
+  const fetchResponsibilities = async () => {
+    try {
+      const responsibilities = await API.get('/responsibility')
+      setResponsibilities(responsibilities.data)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
-  const fetchInvitations = async () => {
-    const invitations = await API.post('/auth/admin/invitation/filter')
-    console.log('invitations', invitations)
-    setInvitations(invitations.data)
+  const fetchInvitations = async (filters = {}) => {
+    try {
+      const invitations = await API.post('/auth/admin/invitation/filter', filters)
+      console.log('invitations', invitations)
+      setInvitations(invitations.data)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const fetchStates = async () => {
-    const state = await API.get('/state')
-    setStates(state.data)
+    try {
+      const state = await API.get('/state')
+      setStates(state.data)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const fetchDistricts = async id => {
+    try {
+      const district = await API.get(`/district/state/${id}`)
+      setDistricts(district.data)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const fetchTehsils = async id => {
+    try {
+      const tehsil = await API.get(`/tehsil/district/${id}`)
+      setTehsils(tehsil.data)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const fetchVillages = async id => {
+    try {
+      const village = await API.get(`/village/tehsil/${id}`)
+      setVillages(village.data)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const resendInvitation = async id => {
-    const invitation = await API.get(`/auth/admin/resend-invitation/${id}`)
+    try {
+      const invitation = await API.get(`/auth/admin/resend-invitation/${id}`)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  const handleOnChange = (key, value) => {
+    setFilters({ ...filters, [key]: value })
+  }
+
+  const handleSubmit = event => {
+    event.preventDefault()
+    fetchInvitations(filters)
   }
 
   useEffect(() => {
-    fetchRoles()
+    fetchResponsibilities()
     fetchInvitations()
     if (ability?.can('read', 'adminInvitations')) {
       fetchStates()
     }
+
+    if (!ability?.can('update', 'Invitations')) {
+      setHideNameColumn({ invitationStatus: false, actions: false })
+    }
   }, [ability])
+
+  console.log(hideNameColumn)
 
   return (
     <Grid container spacing={6}>
       <Grid item xs={12}>
         <Card>
-          <CardHeader
-            title='Invitation 🙌'
-            action={
-              ability?.can('create', 'Invitation') && (
-                <div>
-                  <Button size='medium' variant='contained' onClick={() => setShow(true)}>
+          <CardHeader title='Invitation 🙌'></CardHeader>
+          <Divider light />
+          <CardContent>
+            <Grid
+              container
+              spacing={4}
+              direction='row'
+              justifyContent='space-between'
+              alignItems='center'
+              sx={{ mb: 4 }}
+            >
+              <Grid item lg={2} md={3} sm={6} xs={12}>
+                <Button
+                  fullWidth
+                  variant='outlined'
+                  onClick={() => setShowFilters(!showFilters)}
+                  startIcon={<Icon icon='teenyicons:filter-outline' />}
+                >
+                  {`Filter`}
+                </Button>
+              </Grid>
+              {ability?.can('read', 'Invitations') && (
+                <Grid item lg={2} md={3} sm={6} xs={12}>
+                  <Button fullWidth variant='contained' onClick={() => setShow(true)}>
                     {`Add Invitation`}
                   </Button>
-                </div>
-              )
-            }
-          />
-          <CardContent>
-            {ability?.can('read', 'adminInvitations') ? (
-              <>
-                {invitations.length > 0 && (
-                  <InvitationTableAdmin rows={invitations} columns={columns} innerColumns={innerColumns} />
-                )}
-                <InvitationDialogAdmin
-                  show={show}
-                  setShow={setShow}
-                  roles={roles}
-                  states={states}
-                  fetchInvitations={fetchInvitations}
-                />
-              </>
-            ) : (
-              <>
-                {invitations.length > 0 && <TableSort rows={invitations} columns={columnsOthers} />}
-                <InvitationDialogOthers
-                  show={show}
-                  setShow={setShow}
-                  roles={roles}
-                  fetchInvitations={fetchInvitations}
-                />
-              </>
+                </Grid>
+              )}
+            </Grid>
+
+            {showFilters && (
+              <form onSubmit={handleSubmit}>
+                {/* Filter Div */}
+                <Grid
+                  container
+                  spacing={4}
+                  direction='row'
+                  justifyContent='space-around'
+                  alignItems='center'
+                  sx={{ mb: 4 }}
+                >
+                  <Grid item md={4} sm={6} xs={12}>
+                    <CustomTextField
+                      fullWidth
+                      placeholder='Search…'
+                      InputProps={{
+                        startAdornment: (
+                          <Box sx={{ mr: 2, display: 'flex' }}>
+                            <Icon fontSize='1.25rem' icon='tabler:search' />
+                          </Box>
+                        ),
+                        endAdornment: (
+                          <IconButton size='small' title='Clear' aria-label='Clear'>
+                            <Icon fontSize='1.25rem' icon='tabler:x' />
+                          </IconButton>
+                        )
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item md={4} sm={6} xs={12}>
+                    <CustomTextField
+                      select
+                      fullWidth
+                      defaultValue=''
+                      id='status-select'
+                      placeholder='Responsibility'
+                      disabled={!responsibilities.length}
+                      SelectProps={{
+                        displayEmpty: true,
+                        value: filters.responsibility,
+                        onChange: e => handleOnChange('responsibility', e.target.value)
+                      }}
+                    >
+                      <MenuItem value='' selected disabled>
+                        Select Responsibility
+                      </MenuItem>
+                      {responsibilities?.length ? (
+                        responsibilities.map(responsibility => (
+                          <MenuItem value={responsibility.id} key={responsibility.id}>
+                            {responsibility.role.name}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled>No data</MenuItem>
+                      )}
+                    </CustomTextField>
+                  </Grid>
+
+                  {ability?.can('read', 'adminInvitations') && (
+                    <Grid item md={4} sm={6} xs={12}>
+                      <CustomTextField
+                        select
+                        fullWidth
+                        defaultValue=''
+                        id='status-select'
+                        placeholder='State'
+                        disabled={!states.length}
+                        SelectProps={{
+                          displayEmpty: true,
+                          value: filters.state,
+                          onChange: e => {
+                            handleOnChange('state', e.target.value)
+                            fetchDistricts(e.target.value)
+                          }
+                        }}
+                      >
+                        <MenuItem value='' selected disabled>
+                          Select State
+                        </MenuItem>
+                        {states?.length ? (
+                          states.map(state => (
+                            <MenuItem value={state.id} key={state.id}>
+                              {state.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    </Grid>
+                  )}
+
+                  {ability?.can('read', 'adminInvitations') && (
+                    <Grid item md={4} sm={6} xs={12}>
+                      <CustomTextField
+                        select
+                        fullWidth
+                        defaultValue=''
+                        id='status-select'
+                        placeholder='District'
+                        disabled={!districts.length}
+                        SelectProps={{
+                          displayEmpty: true,
+                          value: filters.district,
+                          onChange: e => {
+                            handleOnChange('district', e.target.value)
+                            fetchTehsils(e.target.value)
+                          }
+                        }}
+                      >
+                        <MenuItem value='' selected disabled>
+                          Select District
+                        </MenuItem>
+                        {districts?.length ? (
+                          districts.map(district => (
+                            <MenuItem value={district.id} key={district.id}>
+                              {district.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    </Grid>
+                  )}
+
+                  {ability?.can('read', 'adminInvitations') && (
+                    <Grid item md={4} sm={6} xs={12}>
+                      <CustomTextField
+                        select
+                        fullWidth
+                        defaultValue=''
+                        id='status-select'
+                        placeholder='Tehsil'
+                        disabled={!tehsils.length}
+                        SelectProps={{
+                          displayEmpty: true,
+                          value: filters.tehsil,
+                          onChange: e => {
+                            handleOnChange('tehsil', e.target.value)
+                            fetchVillages(e.target.value)
+                          }
+                        }}
+                      >
+                        <MenuItem value='' selected disabled>
+                          Select Tehsil
+                        </MenuItem>
+                        {tehsils?.length ? (
+                          tehsils.map(tehsil => (
+                            <MenuItem value={tehsil.id} key={tehsil.id}>
+                              {tehsil.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    </Grid>
+                  )}
+
+                  {ability?.can('read', 'adminInvitations') && (
+                    <Grid item md={4} sm={6} xs={12}>
+                      <CustomTextField
+                        select
+                        fullWidth
+                        defaultValue=''
+                        id='status-select'
+                        placeholder='Village'
+                        disabled={!villages.length}
+                        SelectProps={{
+                          displayEmpty: true,
+                          value: filters.village,
+                          onChange: e => handleOnChange('village', e.target.value)
+                        }}
+                      >
+                        <MenuItem value='' selected disabled>
+                          Select Village
+                        </MenuItem>
+                        {villages?.length ? (
+                          villages.map(village => (
+                            <MenuItem value={village.id} key={village.id}>
+                              {village.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    </Grid>
+                  )}
+                </Grid>
+
+                <Divider light />
+
+                {/* Search Button */}
+                <Grid
+                  container
+                  direction='row'
+                  spacing={4}
+                  justifyContent='center'
+                  alignItems='center'
+                  sx={{ mb: 2, mt: 2 }}
+                >
+                  <Grid item lg={2} md={2} sm={6} xs={12}>
+                    <Button fullWidth type='submit' size='medium' variant='contained'>
+                      {`Search`}
+                    </Button>
+                  </Grid>
+                  <Grid item lg={2} md={2} sm={6} xs={12}>
+                    <Button
+                      fullWidth
+                      type='reset'
+                      size='medium'
+                      variant='outlined'
+                      onClick={() => setFilters(defaultFilterObj)}
+                    >
+                      {`Reset`}
+                    </Button>
+                  </Grid>
+                </Grid>
+              </form>
             )}
+
+            <TableSort rows={invitations} columns={columnsOthers} hideNameColumn={hideNameColumn} />
+            <InvitationDialog
+              show={show}
+              setShow={setShow}
+              responsibilities={responsibilities}
+              states={states}
+              fetchInvitations={fetchInvitations}
+              isAdmin={ability?.can('read', 'adminInvitations')}
+            />
           </CardContent>
         </Card>
       </Grid>

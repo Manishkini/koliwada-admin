@@ -30,7 +30,6 @@ import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 
 import API from 'src/configs/axios'
-import { useAuth } from 'src/hooks/useAuth'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -62,37 +61,65 @@ const defaultValues = {
   district: '',
   tehsil: '',
   village: '',
-  role: '',
+  responsibility: '',
   email: '',
   mobileNumber: ''
 }
 
-const schema = yup.object().shape({
+const adminSchema = yup.object().shape({
   firstName: yup
     .string()
-    .required()
+    .required('first name in required')
     .matches(/^[A-Za-z\s]+$/, 'Please enter first name in english'),
-  middleName: yup
-    .string()
-    .required()
-    .matches(/^[A-Za-z\s]+$/, 'Please enter middle name in english'),
+  middleName: yup.string().matches(/^[A-Za-z\s]+$/, 'Please enter middle name in english'),
   lastName: yup
     .string()
-    .required()
+    .required('last name in required')
     .matches(/^[A-Za-z\s]+$/, 'Please enter last name in english'),
   firstNameNative: yup
     .string()
-    .required()
+    .required('first name in marathi required')
     .matches(/^[ऀ-ॿ\s]+$/, 'Please enter first name in marathi'),
-  middleNameNative: yup
-    .string()
-    .required()
-    .matches(/^[ऀ-ॿ\s]+$/, 'Please enter middle name in marathi'),
+  middleNameNative: yup.string().matches(/^[ऀ-ॿ\s]+$/, 'Please enter middle name in marathi'),
   lastNameNative: yup
     .string()
-    .required()
+    .required('last name in marathi required')
     .matches(/^[ऀ-ॿ\s]+$/, 'Please enter last name in marathi'),
-  role: yup.string().required(),
+  state: yup.string().required(),
+  district: yup.string().required(),
+  tehsil: yup.string().required(),
+  responsibility: yup.string().required(),
+  village: yup.string().required(),
+  email: yup
+    .string()
+    .required()
+    .matches(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'Please enter a valid email address.'),
+  mobileNumber: yup
+    .string()
+    .required()
+    .matches(/^[6-9]\d{9}$/, 'Please enter valid mobile number')
+})
+
+const nonAdminSchema = yup.object().shape({
+  firstName: yup
+    .string()
+    .required('first name in required')
+    .matches(/^[A-Za-z\s]+$/, 'Please enter first name in english'),
+  middleName: yup.string().matches(/^[A-Za-z\s]+$/, 'Please enter middle name in english'),
+  lastName: yup
+    .string()
+    .required('last name in required')
+    .matches(/^[A-Za-z\s]+$/, 'Please enter last name in english'),
+  firstNameNative: yup
+    .string()
+    .required('first name in marathi required')
+    .matches(/^[ऀ-ॿ\s]+$/, 'Please enter first name in marathi'),
+  middleNameNative: yup.string().matches(/^[ऀ-ॿ\s]+$/, 'Please enter middle name in marathi'),
+  lastNameNative: yup
+    .string()
+    .required('last name in marathi required')
+    .matches(/^[ऀ-ॿ\s]+$/, 'Please enter last name in marathi'),
+  responsibility: yup.string().required(),
   email: yup
     .string()
     .required()
@@ -104,9 +131,12 @@ const schema = yup.object().shape({
 })
 
 const InvitationDialogAdmin = props => {
-  const auth = useAuth()
-  const { admin } = auth
-  const { show, setShow, states, roles, fetchInvitations } = props
+  const { show, setShow, states, responsibilities, fetchInvitations, isAdmin } = props
+
+  // States
+  const [districts, setDistricts] = useState([])
+  const [tehsils, setTehsils] = useState([])
+  const [villages, setVillages] = useState([])
 
   // ** Hook
   const {
@@ -116,8 +146,23 @@ const InvitationDialogAdmin = props => {
   } = useForm({
     defaultValues,
     mode: 'onChange',
-    resolver: yupResolver(schema)
+    resolver: yupResolver(isAdmin ? adminSchema : nonAdminSchema)
   })
+
+  const fetchDistricts = async id => {
+    const district = await API.get(`/district/state/${id}`)
+    setDistricts(district.data)
+  }
+
+  const fetchTehsils = async id => {
+    const tehsil = await API.get(`/tehsil/district/${id}`)
+    setTehsils(tehsil.data)
+  }
+
+  const fetchVillages = async id => {
+    const village = await API.get(`/village/tehsil/${id}`)
+    setVillages(village.data)
+  }
 
   const sendInvitation = async e => {
     try {
@@ -134,10 +179,6 @@ const InvitationDialogAdmin = props => {
 
   const onSubmit = e => {
     e.mobileNumber = `+91${e.mobileNumber}`
-    e.state = admin.state.id
-    e.district = admin.district.id
-    e.tehsil = admin.tehsil.id
-    e.village = admin.village.id
     sendInvitation(e)
   }
 
@@ -287,9 +328,162 @@ const InvitationDialogAdmin = props => {
                   )}
                 />
               </Grid>
+
+              {isAdmin && (
+                <Grid item sm={6} xs={12}>
+                  <Controller
+                    name='state'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomTextField
+                        select
+                        fullWidth
+                        id='status-select'
+                        label='State'
+                        SelectProps={{
+                          value: value,
+                          onChange: e => {
+                            onChange(e.target.value)
+                            fetchDistricts(e.target.value)
+                          }
+                        }}
+                        error={Boolean(errors.state)}
+                        aria-describedby='validation-basic-select'
+                        {...(errors.state && { helperText: 'This field is required' })}
+                      >
+                        {states?.length ? (
+                          states.map(state => (
+                            <MenuItem value={state.id} key={state.id}>
+                              {state.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    )}
+                  />
+                </Grid>
+              )}
+
+              {isAdmin && (
+                <Grid item sm={6} xs={12}>
+                  <Controller
+                    name='district'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomTextField
+                        select
+                        fullWidth
+                        disabled={!districts.length}
+                        id='status-select'
+                        label='District'
+                        SelectProps={{
+                          value: value,
+                          onChange: e => {
+                            onChange(e.target.value)
+                            fetchTehsils(e.target.value)
+                          }
+                        }}
+                        error={Boolean(errors.district)}
+                        aria-describedby='validation-basic-select'
+                        {...(errors.district && { helperText: 'This field is required' })}
+                      >
+                        {districts?.length ? (
+                          districts.map(district => (
+                            <MenuItem value={district.id} key={district.id}>
+                              {district.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    )}
+                  />
+                </Grid>
+              )}
+
+              {isAdmin && (
+                <Grid item sm={6} xs={12}>
+                  <Controller
+                    name='tehsil'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomTextField
+                        select
+                        fullWidth
+                        disabled={!tehsils.length}
+                        id='status-select'
+                        label='Tehsil'
+                        SelectProps={{
+                          value: value,
+                          onChange: e => {
+                            onChange(e.target.value)
+                            fetchVillages(e.target.value)
+                          }
+                        }}
+                        error={Boolean(errors.tehsil)}
+                        aria-describedby='validation-basic-select'
+                        {...(errors.tehsil && { helperText: 'This field is required' })}
+                      >
+                        {tehsils?.length ? (
+                          tehsils.map(tehsil => (
+                            <MenuItem value={tehsil.id} key={tehsil.id}>
+                              {tehsil.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    )}
+                  />
+                </Grid>
+              )}
+
+              {isAdmin && (
+                <Grid item sm={6} xs={12}>
+                  <Controller
+                    name='village'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <CustomTextField
+                        select
+                        fullWidth
+                        disabled={!villages.length}
+                        id='status-select'
+                        label='Village'
+                        SelectProps={{
+                          value: value,
+                          onChange: e => onChange(e)
+                        }}
+                        error={Boolean(errors.village)}
+                        aria-describedby='validation-basic-select'
+                        {...(errors.village && { helperText: 'This field is required' })}
+                      >
+                        {villages?.length ? (
+                          villages.map(village => (
+                            <MenuItem value={village.id} key={village.id}>
+                              {village.name}
+                            </MenuItem>
+                          ))
+                        ) : (
+                          <MenuItem disabled>No data</MenuItem>
+                        )}
+                      </CustomTextField>
+                    )}
+                  />
+                </Grid>
+              )}
+
               <Grid item xs={12}>
                 <Controller
-                  name='role'
+                  name='responsibility'
                   control={control}
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
@@ -297,19 +491,19 @@ const InvitationDialogAdmin = props => {
                       select
                       fullWidth
                       id='status-select'
-                      label='Role'
+                      label='Responsibility'
                       SelectProps={{
                         value: value,
                         onChange: e => onChange(e)
                       }}
-                      error={Boolean(errors.role)}
+                      error={Boolean(errors.responsibility)}
                       aria-describedby='validation-basic-select'
-                      {...(errors.role && { helperText: 'This field is required' })}
+                      {...(errors.responsibility && { helperText: 'This field is required' })}
                     >
-                      {roles?.length ? (
-                        roles.map(role => (
-                          <MenuItem value={role.id} key={role.id}>
-                            {`${role.name} (${role.nameNative})`}
+                      {responsibilities?.length ? (
+                        responsibilities.map(responsibility => (
+                          <MenuItem value={responsibility.id} key={responsibility.id}>
+                            {`${responsibility.role.name} (${responsibility.role.nameNative})`}
                           </MenuItem>
                         ))
                       ) : (
