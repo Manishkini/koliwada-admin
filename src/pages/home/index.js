@@ -4,6 +4,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
+import DraggableTable from 'src/layouts/components/grid/DraggableTable'
 
 const Home = () => {
   return (
@@ -19,6 +20,7 @@ const Home = () => {
               You can checkout the left sidebar to route to specific section and Create, Read, Update, Delete the
               records. All the best!
             </Typography>
+            <DraggableTable />
           </CardContent>
         </Card>
       </Grid>

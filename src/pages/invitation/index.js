@@ -76,6 +76,7 @@ const Invitation = () => {
   const columnsOthers = [
     {
       flex: 0.15,
+      minWidth: 150,
       field: 'firstName',
       headerName: 'Name',
       sortable: true,
@@ -88,6 +89,7 @@ const Invitation = () => {
 
     {
       flex: 0.1,
+      minWidth: 100,
       field: 'role',
       headerName: 'Role',
       headerAlign: 'center',
@@ -103,6 +105,7 @@ const Invitation = () => {
     },
     {
       flex: 0.1,
+      minWidth: 100,
       field: 'village',
       headerName: 'Village',
       headerAlign: 'center',
@@ -115,6 +118,7 @@ const Invitation = () => {
     },
     {
       flex: 0.15,
+      minWidth: 200,
       field: 'email',
       headerName: 'E-mail',
       headerAlign: 'center',
@@ -127,6 +131,7 @@ const Invitation = () => {
     },
     {
       flex: 0.15,
+      minWidth: 150,
       field: 'mobileNumber',
       headerName: 'Mobile Number',
       headerAlign: 'center',
@@ -139,6 +144,7 @@ const Invitation = () => {
     },
     {
       flex: 0.3,
+      minWidth: 300,
       field: 'invitationStatus',
       headerName: 'Invitation Status',
       headerAlign: 'center',
@@ -169,6 +175,7 @@ const Invitation = () => {
     },
     {
       flex: 0.1,
+      minWidth: 100,
       field: 'actions',
       headerName: 'Actions',
       headerAlign: 'center',
@@ -512,24 +519,18 @@ const Invitation = () => {
                 <Grid
                   container
                   direction='row'
-                  spacing={4}
+                  gap={2}
                   justifyContent='center'
                   alignItems='center'
-                  sx={{ mb: 2, mt: 2 }}
+                  sx={{ mb: 4, mt: 4 }}
                 >
                   <Grid item lg={2} md={2} sm={6} xs={12}>
-                    <Button fullWidth type='submit' size='medium' variant='contained'>
+                    <Button fullWidth type='submit' variant='contained'>
                       {`Search`}
                     </Button>
                   </Grid>
                   <Grid item lg={2} md={2} sm={6} xs={12}>
-                    <Button
-                      fullWidth
-                      type='reset'
-                      size='medium'
-                      variant='outlined'
-                      onClick={() => setFilters(defaultFilterObj)}
-                    >
+                    <Button fullWidth type='reset' variant='outlined' onClick={() => setFilters(defaultFilterObj)}>
                       {`Reset`}
                     </Button>
                   </Grid>
