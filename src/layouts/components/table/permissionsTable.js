@@ -22,30 +22,36 @@ const PermissionsTable = props => {
     if (isPermissionAlreadyExists > -1) {
       const tempPermissions = []
       permissions.forEach(obj => {
-        if (obj.subject.toLowerCase() === subject.toLowerCase()) {
-          if (obj.actions.includes(action)) {
+        if (obj.subject?.toLowerCase() === subject.toLowerCase()) {
+          if (obj.actions?.includes(action)) {
             const tempActions = obj.actions.filter(obj => obj !== action)
             if (!tempActions.length) obj.actions = tempActions
           } else {
-            obj.actions.push(action)
+            obj.actions?.push(action)
           }
         }
-        obj.actions.length && tempPermissions.push(obj)
+        obj.actions?.length && tempPermissions.push(obj)
       })
       setPermissions(tempPermissions)
+      upsertPermission(tempPermissions)
     } else {
       const tempPermissionObj = { subject, actions: [action] }
       const tempPermissions = [...permissions]
       tempPermissions.push(tempPermissionObj)
       setPermissions(tempPermissions)
+      upsertPermission(tempPermissions)
     }
   }
 
   useEffect(() => {
-    if (permissions.length) {
-      upsertPermission(permissions)
+    if (rows.length) {
+      const tempPermissions = []
+      rows.map(permission => {
+        tempPermissions.push({ subject: permission.name, actions: permission.actions })
+      })
+      setPermissions(tempPermissions)
     }
-  }, [permissions])
+  }, [rows])
 
   return (
     <TableContainer component={Paper} sx={{ maxHeight: 440 }}>

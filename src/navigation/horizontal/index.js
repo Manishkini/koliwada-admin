@@ -25,6 +25,20 @@ const navigation = () => {
       icon: 'tabler:user-share'
     },
     {
+      title: 'Gallery',
+      icon: 'tabler:brand-appgallery',
+      children: [
+        {
+          title: 'Add',
+          path: '/gallery/add'
+        },
+        {
+          title: 'List',
+          path: '/gallery/list'
+        }
+      ]
+    },
+    {
       title: 'Settings',
       action: 'read',
       subject: 'setting-page',
@@ -52,6 +66,13 @@ const navigation = () => {
               icon: 'tabler:lock-plus'
             }
           ]
+        },
+        {
+          title: 'Event',
+          action: 'read',
+          subject: 'Event',
+          path: '/event',
+          icon: 'tabler:calendar-event'
         }
       ]
     }

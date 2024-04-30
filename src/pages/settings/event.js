@@ -10,26 +10,35 @@ import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import CardContent from '@mui/material/CardContent'
 import TableSort from 'src/layouts/components/grid/TableGrid'
-import PermissionDialog from 'src/layouts/components/dialog/PermissionDialog'
+import EventDialog from 'src/layouts/components/dialog/EventDialog'
 import API from 'src/configs/axios'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 import toast from 'react-hot-toast'
-import { useRouter } from 'next/router'
 
-const User = () => {
-  const router = useRouter()
+const Events = () => {
   const [show, setShow] = useState(false)
   const [rows, setRows] = useState([])
   const [selectedRow, setSelectedRow] = useState(null)
 
   const columns = [
     {
-      flex: 0.8,
+      flex: 0.4,
       field: 'name',
       headerName: 'Name',
+      sortable: true,
+      renderCell: params => (
+        <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
+          {params.value}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      field: 'nameNative',
+      headerName: 'Name Native',
       sortable: true,
       renderCell: params => (
         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontWeight: 600 }}>
@@ -55,7 +64,7 @@ const User = () => {
           </IconButton>
           <IconButton
             onClick={() => {
-              deletePermission(row.id)
+              deleteEvent(row.id)
             }}
           >
             <Icon icon='tabler:trash' />
@@ -65,14 +74,14 @@ const User = () => {
     }
   ]
 
-  const fetchPermissions = async () => {
-    const permissions = await API.get('/permission')
+  const fetchEvents = async () => {
+    const permissions = await API.get('/event')
     setRows(permissions.data)
   }
 
-  const deletePermission = async id => {
+  const deleteEvent = async id => {
     try {
-      const response = await API.delete(`/permission/${id}`)
+      const response = await API.delete(`/event/${id}`)
       if (response.status === 200) {
         const tempRows = rows.filter(obj => obj.id !== id)
         setRows(tempRows)
@@ -99,14 +108,14 @@ const User = () => {
       tempRow.push(obj)
       setRows(tempRow)
     } else if (type === 'update') {
-      const rowIndex = tempRow.findIndex(permission => permission.id === obj.id)
+      const rowIndex = tempRow.findIndex(event => event.id === obj.id)
       tempRow[rowIndex].name = obj.name
       setRows(tempRow)
     }
   }
 
   useEffect(() => {
-    fetchPermissions()
+    fetchEvents()
   }, [])
 
   return (
@@ -114,11 +123,11 @@ const User = () => {
       <Grid item xs={12}>
         <Card>
           <CardHeader
-            title='Permission 🙌'
+            title='Event 🙌'
             action={
               <div>
-                <Button size='medium' variant='contained' onClick={() => router.push('/gallery/new')}>
-                  {`Add Permission`}
+                <Button size='medium' variant='contained' onClick={onClose}>
+                  {`Add Event`}
                 </Button>
               </div>
             }
@@ -126,7 +135,7 @@ const User = () => {
           <CardContent></CardContent>
           <CardContent>
             <TableSort columns={columns} rows={rows} />
-            <PermissionDialog open={show} onClose={onClose} selectedRow={selectedRow} upsertRow={upsertRow} />
+            <EventDialog open={show} onClose={onClose} selectedRow={selectedRow} upsertRow={upsertRow} />
           </CardContent>
         </Card>
       </Grid>
@@ -134,9 +143,4 @@ const User = () => {
   )
 }
 
-User.acl = {
-  action: 'read',
-  subject: 'User'
-}
-
-export default User
+export default Events

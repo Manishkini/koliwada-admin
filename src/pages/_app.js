@@ -49,6 +49,9 @@ import 'src/iconify-bundle/icons-bundle-react'
 // ** Global css styles
 import '../../styles/globals.css'
 
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+
 const clientSideEmotionCache = createEmotionCache()
 
 // ** Pace Loader
@@ -106,14 +109,16 @@ const App = props => {
             {({ settings }) => {
               return (
                 <ThemeComponent settings={settings}>
-                  <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                    <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                      {getLayout(<Component {...pageProps} />)}
-                    </AclGuard>
-                  </Guard>
-                  <ReactHotToast>
-                    <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
-                  </ReactHotToast>
+                  <DndProvider backend={HTML5Backend}>
+                    <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                      <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                        {getLayout(<Component {...pageProps} />)}
+                      </AclGuard>
+                    </Guard>
+                    <ReactHotToast>
+                      <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
+                    </ReactHotToast>
+                  </DndProvider>
                 </ThemeComponent>
               )
             }}

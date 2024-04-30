@@ -21,6 +21,7 @@ import PermissionPreview from 'src/layouts/components/preview/permissions'
 const Roles = () => {
   const auth = useAuth()
   const [show, setShow] = useState(false)
+  const [isEdit, setIsEdit] = useState(false)
   const [rows, setRows] = useState([])
   const [roles, setRoles] = useState([])
   const [permissions, setPermissions] = useState([])
@@ -88,6 +89,7 @@ const Roles = () => {
     setSelectedRow(null)
     setSavedPermissions([])
     setSelectedResponsibility(null)
+    setIsEdit(false)
   }
 
   useEffect(() => {
@@ -205,6 +207,7 @@ const Roles = () => {
                 })
 
                 setSavedPermissions(tempPermissions)
+                setIsEdit(true)
               }}
             >
               <Icon icon='tabler:edit' />
@@ -243,6 +246,7 @@ const Roles = () => {
                 open={show}
                 onClose={onClose}
                 roles={roles}
+                isEdit={isEdit}
                 permissions={savedPermissions?.length ? savedPermissions : permissions}
                 selectedRow={selectedRow}
                 fetchResponsibility={fetchResponsibility}

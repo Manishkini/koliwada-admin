@@ -131,5 +131,18 @@
   "Disabled Menu": "Menu désactivé",
   "Raise Support": "Augmenter le soutien",
   "Documentation": "Documentation",
-  "Not Found": "प्रशासक सापडला नाही"
+  "Not Found": "प्रशासक सापडला नाही",
+  "Home": "मुख्यपृष्ठ",
+  "Invitations": "आमंत्रणे",
+  "User Management": "वापरकर्ता व्यवस्थापन",
+  "Gallery": "गॅलरी",
+  "Add": "ॲड",
+  "Edit": "सुधारणे",
+  "List": "यादी",
+  "Settings": "सेटिंग्ज",
+  "Roles & Responsibility": "भूमिका आणि जबाबदारी",
+  "Permissions": "परवानग्या",
+  "Roles": "भूमिका",
+  "Responsibility": "जबाबदारी",
+  "Event": "कार्यक्रम"
 }

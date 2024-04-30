@@ -63,7 +63,7 @@ const schema = yup.object().shape({
 })
 
 const ResponsibilityDialog = props => {
-  const { open, onClose, roles, selectedRow, permissions, fetchResponsibility } = props
+  const { open, onClose, roles, selectedRow, permissions, fetchResponsibility, isEdit } = props
   const [permissionRecords, setPermissionRecords] = useState([])
 
   // ** Form
@@ -86,8 +86,13 @@ const ResponsibilityDialog = props => {
   const onSubmit = async event => {
     try {
       const { role } = event
+      let response
 
-      const response = await API.post('/responsibility', { role, permissions: permissionRecords })
+      if (isEdit) {
+        response = await API.patch(`/responsibility/${selectedRow.id}`, { permissions: permissionRecords })
+      } else {
+        response = await API.post('/responsibility', { role, permissions: permissionRecords })
+      }
       if (response.status === 200) {
         toast.success('Responsibility Assigned to the role successfully!', {
           position: 'bottom-left'
@@ -115,6 +120,16 @@ const ResponsibilityDialog = props => {
       setValue('role', selectedRow.role.id)
     }
   }, [selectedRow, setValue])
+
+  useEffect(() => {
+    if (permissions?.length) {
+      const tempPermissions = []
+      permissions.map(permission => {
+        tempPermissions.push({ subject: permission.name, actions: permission.actions })
+      })
+      setPermissionRecords(tempPermissions)
+    }
+  }, [permissions])
 
   return (
     <Card>
@@ -170,6 +185,7 @@ const ResponsibilityDialog = props => {
                       fullWidth
                       id='role-select'
                       label='Roles'
+                      disabled={isEdit}
                       SelectProps={{
                         value: value,
                         onChange: e => onChange(e)
