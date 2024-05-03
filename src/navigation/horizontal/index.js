@@ -27,13 +27,19 @@ const navigation = () => {
     {
       title: 'Gallery',
       icon: 'tabler:brand-appgallery',
+      action: 'read',
+      subject: 'Gallery',
       children: [
         {
           title: 'Add',
+          action: 'create',
+          subject: 'Gallery',
           path: '/gallery/add'
         },
         {
           title: 'List',
+          action: 'read',
+          subject: 'Gallery',
           path: '/gallery/list'
         }
       ]

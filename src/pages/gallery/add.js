@@ -163,11 +163,7 @@ const Gallery = () => {
       files.forEach(file => {
         formData.append('files', file)
       })
-      for (const [key, value] of formData) {
-        console.log(`${key} : ${value}`)
-      }
       const gallery = await API.post('/gallery', formData)
-      console.log('event', gallery)
       toast.success('Event with photos added successfully', {
         position: 'bottom-left'
       })
@@ -283,7 +279,8 @@ const Gallery = () => {
                           showYearDropdown
                           showMonthDropdown
                           onChange={e => onChange(e)}
-                          placeholderText='MM-DD-YYYY'
+                          placeholderText='DD-MM-YYYY'
+                          dateFormat='d-MMMM-yyyy'
                           customInput={
                             <CustomInput
                               value={value}
@@ -400,7 +397,7 @@ const Gallery = () => {
 }
 
 Gallery.acl = {
-  action: 'read',
+  action: 'create',
   subject: 'Gallery'
 }
 

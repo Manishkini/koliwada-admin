@@ -69,11 +69,13 @@
     "react-hot-toast": "2.4.1",
     "react-i18next": "^13.5.0",
     "react-perfect-scrollbar": "1.5.8",
+    "react-photo-album": "^2.3.1",
     "react-popper": "2.3.0",
     "react-redux": "8.0.5",
     "recharts": "2.5.0",
     "stylis": "4.1.4",
     "stylis-plugin-rtl": "2.1.1",
+    "yet-another-react-lightbox": "^3.17.5",
     "yup": "1.1.1"
   },
   "devDependencies": {
