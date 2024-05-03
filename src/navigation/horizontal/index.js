@@ -46,8 +46,6 @@ const navigation = () => {
     },
     {
       title: 'Settings',
-      action: 'read',
-      subject: 'setting-page',
       icon: 'tabler:settings',
       children: [
         {
@@ -58,18 +56,53 @@ const navigation = () => {
           children: [
             {
               title: 'Permissions',
-              path: '/settings/permissions',
-              icon: 'tabler:lock-plus'
+              action: 'read',
+              subject: 'Permission',
+              path: '/settings/permissions'
             },
             {
               title: 'Roles',
-              path: '/settings/roles',
-              icon: 'tabler:user-star'
+              action: 'read',
+              subject: 'Role',
+              path: '/settings/roles'
             },
             {
               title: 'Responsibility',
-              path: '/settings/responsibility',
-              icon: 'tabler:lock-plus'
+              action: 'read',
+              subject: 'Responsibility',
+              path: '/settings/responsibility'
+            }
+          ]
+        },
+        {
+          title: 'Locations',
+          action: 'read',
+          subject: 'location',
+          icon: 'tabler:location',
+          children: [
+            {
+              title: 'State',
+              action: 'read',
+              subject: 'Location',
+              path: '/settings/locations/state'
+            },
+            {
+              title: 'District',
+              action: 'read',
+              subject: 'Location',
+              path: '/settings/locations/district'
+            },
+            {
+              title: 'Tehsil',
+              action: 'read',
+              subject: 'Location',
+              path: '/settings/locations/tehsil'
+            },
+            {
+              title: 'Village',
+              action: 'read',
+              subject: 'Location',
+              path: '/settings/locations/village'
             }
           ]
         },

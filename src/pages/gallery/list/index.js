@@ -70,7 +70,7 @@ const defaultColumns = [
     )
   },
   {
-    flex: 0.1,
+    flex: 0.15,
     minWidth: 100,
     field: 'village',
     headerName: 'Village',
@@ -203,8 +203,8 @@ const GalleryList = () => {
   const columns = [
     ...defaultColumns,
     {
-      flex: 0.1,
-      minWidth: 140,
+      flex: 0.13,
+      minWidth: 200,
       sortable: false,
       field: 'actions',
       headerName: 'Actions',
@@ -248,7 +248,7 @@ const GalleryList = () => {
         })
 
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 5, alignItems: 'center' }}>
             <Tooltip title='Delete Invoice'>
               <IconButton
                 size='small'
